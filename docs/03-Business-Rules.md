@@ -82,3 +82,15 @@ The system shall allow the Principal to configure attendance policy parameters, 
 - Enable or disable attendance alerts
 
 These settings shall apply only to the respective college.
+
+---
+
+## BR-013 Report Templates
+
+Authorized users can save report configurations as reusable templates.
+
+---
+
+## BR-014 Shared Report Templates
+
+The Principal may create shared report templates that are available to all teachers.
