@@ -1,0 +1,442 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum UserRole {
+  SUPER_ADMIN
+  COLLEGE_ADMIN
+  PRINCIPAL
+  HOD
+  TEACHER
+  STUDENT
+}
+
+model College {
+  id      String  @id @default(uuid())
+  name    String
+  code    String  @unique
+  email   String? @unique
+  phone   String?
+  website String?
+  logoUrl String?
+  address String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  users            User[]
+  departments      Department[]
+  programs         Program[]
+  academicSessions AcademicSession[]
+
+  attendancePolicy AttendancePolicy?
+
+  isActive Boolean @default(true)
+
+  @@map("colleges")
+}
+
+model User {
+  id           String  @id @default(uuid())
+  firstName    String
+  lastName     String?
+  email        String  @unique
+  passwordHash String
+
+  role UserRole
+
+  collegeId String
+  college   College @relation(fields: [collegeId], references: [id])
+
+  isActive Boolean @default(true)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  student Student?
+  teacher Teacher?
+
+  lastLoginAt     DateTime?
+  profileImageUrl String?
+
+  auditLogs AuditLog[]
+
+  @@index([email])
+  @@index([collegeId])
+  @@map("users")
+}
+
+model Department {
+  id   String @id @default(uuid())
+  name String
+  code String
+
+  collegeId String
+  college   College @relation(fields: [collegeId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  programs Program[]
+  teachers Teacher[]
+
+  isActive Boolean @default(true)
+
+  @@unique([collegeId, code])
+  @@index([collegeId])
+  @@map("departments")
+}
+
+model Program {
+  id   String @id @default(uuid())
+  name String
+  code String
+
+  duration Int // Number of semesters (e.g. 8)
+
+  collegeId String
+  college   College @relation(fields: [collegeId], references: [id])
+
+  departmentId String
+  department   Department @relation(fields: [departmentId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  semesters   Semester[]
+  subjects    Subject[]
+  enrollments Enrollment[]
+
+  isActive Boolean @default(true)
+
+  @@unique([collegeId, code])
+  @@index([departmentId])
+  @@map("programs")
+}
+
+model Semester {
+  id String @id @default(uuid())
+
+  name String
+
+  programId String
+  program   Program @relation(fields: [programId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  subjects    Subject[]
+  enrollments Enrollment[]
+
+  @@unique([programId, name])
+  @@map("semesters")
+}
+
+enum Gender {
+  MALE
+  FEMALE
+  OTHER
+}
+
+model Student {
+  id String @id @default(uuid())
+
+  userId String @unique
+  user   User   @relation(fields: [userId], references: [id])
+
+  studentId          String
+  rollNumber         String
+  registrationNumber String
+
+  gender Gender?
+
+  dateOfBirth DateTime?
+
+  phone         String?
+  guardianName  String?
+  guardianPhone String?
+
+  admissionDate DateTime
+
+  enrollments Enrollment[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([studentId])
+  @@index([registrationNumber])
+  @@index([rollNumber])
+  @@map("students")
+}
+
+model Teacher {
+  id String @id @default(uuid())
+
+  userId String @unique
+  user   User   @relation(fields: [userId], references: [id])
+
+  employeeId String
+
+  designation String?
+
+  qualification String?
+
+  phone String?
+
+  officialEmail String?
+
+  joiningDate DateTime
+
+  departmentId String
+  department   Department @relation(fields: [departmentId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  assignments TeacherAssignment[]
+
+  @@unique([departmentId, employeeId])
+  @@index([departmentId])
+  @@index([employeeId])
+  @@map("teachers")
+}
+
+enum SubjectType {
+  THEORY
+  PRACTICAL
+  PROJECT
+}
+
+model Subject {
+  id String @id @default(uuid())
+
+  name    String
+  code    String
+  credits Int
+
+  type SubjectType
+
+  programId String
+  program   Program @relation(fields: [programId], references: [id])
+
+  semesterId String
+  semester   Semester @relation(fields: [semesterId], references: [id])
+
+  isActive Boolean @default(true)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  assignments TeacherAssignment[]
+
+  @@unique([programId, code])
+  @@index([semesterId])
+  @@index([code])
+  @@map("subjects")
+}
+
+enum EnrollmentStatus {
+  ACTIVE
+  PROMOTED
+  COMPLETED
+  DROPPED
+  SUSPENDED
+}
+
+model Enrollment {
+  id String @id @default(uuid())
+
+  studentId String
+  student   Student @relation(fields: [studentId], references: [id])
+
+  academicSessionId String
+  academicSession   AcademicSession @relation(fields: [academicSessionId], references: [id])
+
+  programId String
+  program   Program @relation(fields: [programId], references: [id])
+
+  semesterId String
+  semester   Semester @relation(fields: [semesterId], references: [id])
+
+  status EnrollmentStatus @default(ACTIVE)
+
+  enrolledAt DateTime @default(now())
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  attendanceRecords AttendanceRecord[]
+
+  @@unique([studentId, academicSessionId])
+  @@index([programId])
+  @@index([semesterId])
+  @@map("enrollments")
+}
+
+model TeacherAssignment {
+  id String @id @default(uuid())
+
+  teacherId String
+  teacher   Teacher @relation(fields: [teacherId], references: [id])
+
+  subjectId String
+  subject   Subject @relation(fields: [subjectId], references: [id])
+
+  academicSessionId String
+  academicSession   AcademicSession @relation(fields: [academicSessionId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  isActive Boolean @default(true)
+
+  attendanceSessions AttendanceSession[]
+
+  @@unique([teacherId, subjectId, academicSessionId])
+  @@index([teacherId])
+  @@index([subjectId])
+  @@map("teacher_assignments")
+}
+
+model AcademicSession {
+  id String @id @default(uuid())
+
+  title String // Example: 2026-2027
+
+  startDate DateTime
+  endDate   DateTime
+
+  isActive Boolean @default(false)
+
+  collegeId String
+  college   College @relation(fields: [collegeId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  isLocked Boolean @default(false)
+
+  enrollments Enrollment[]
+  assignments TeacherAssignment[]
+
+  @@unique([collegeId, title])
+  @@index([collegeId])
+  @@map("academic_sessions")
+}
+
+enum AttendanceStatus {
+  PRESENT
+  ABSENT
+  LATE
+  LEAVE
+}
+
+model AttendanceSession {
+  id String @id @default(uuid())
+
+  teacherAssignmentId String
+  teacherAssignment   TeacherAssignment @relation(fields: [teacherAssignmentId], references: [id])
+
+  classDate   DateTime
+  classNumber Int?
+
+  startTime DateTime?
+  endTime   DateTime?
+
+  remarks String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  records AttendanceRecord[]
+
+  @@unique([teacherAssignmentId, classDate, classNumber])
+  @@index([classDate])
+  @@map("attendance_sessions")
+}
+
+model AttendanceRecord {
+  id String @id @default(uuid())
+
+  attendanceSessionId String
+  attendanceSession   AttendanceSession @relation(fields: [attendanceSessionId], references: [id])
+
+  enrollmentId String
+  enrollment   Enrollment @relation(fields: [enrollmentId], references: [id])
+
+  status AttendanceStatus
+
+  remarks String?
+
+  markedAt  DateTime @default(now())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([attendanceSessionId, enrollmentId])
+  @@index([enrollmentId])
+  @@map("attendance_records")
+}
+
+enum AuditAction {
+  CREATE
+  UPDATE
+  DELETE
+  LOGIN
+  LOGOUT
+  MARK_ATTENDANCE
+  EDIT_ATTENDANCE
+}
+
+model AuditLog {
+  id String @id @default(uuid())
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id])
+
+  action AuditAction
+
+  entity String
+
+  entityId String
+
+  oldValue Json?
+
+  newValue Json?
+
+  ipAddress String?
+
+  userAgent String?
+
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+  @@index([entity])
+  @@map("audit_logs")
+}
+
+model AttendancePolicy {
+  id String @id @default(uuid())
+
+  collegeId String  @unique
+  college   College @relation(fields: [collegeId], references: [id])
+
+  minimumAttendancePercentage Int @default(75)
+
+  attendanceEditWindowMinutes Int @default(30)
+
+  allowLateAttendance Boolean @default(true)
+
+  allowLeaveAttendance Boolean @default(true)
+
+  autoLockAttendance Boolean @default(true)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("attendance_policies")
+}
