@@ -39,7 +39,7 @@ const authenticate = async (
       throw new ApiError(401, "User not found or inactive");
     }
 
-    (req as any).user = user;
+    req.user = user;
 
     next();
   } catch {
