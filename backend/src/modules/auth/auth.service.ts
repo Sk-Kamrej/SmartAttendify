@@ -32,11 +32,13 @@ const login = async (email: string, password: string) => {
     }
   );
 
+  const { passwordHash, ...safeUser } = user;
+
   return {
     token,
-    user,
+    user: safeUser,
   };
-};
+  };
 
 export default {
   login,
