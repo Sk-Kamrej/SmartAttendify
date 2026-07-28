@@ -6,7 +6,7 @@ import ApiError from "../utils/ApiError.js";
 const authorize =
   (...allowedRoles: UserRole[]) =>
   (req: Request, _res: Response, next: NextFunction) => {
-    const user = (req as any).user;
+    const user = req.user;
 
     if (!user) {
       return next(new ApiError(401, "Unauthorized"));
