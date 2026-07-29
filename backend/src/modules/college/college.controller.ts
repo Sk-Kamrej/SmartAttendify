@@ -16,8 +16,8 @@ const createCollege = catchAsync(async (req: Request, res: Response) => {
   );
 });
 
-const getAllColleges = catchAsync(async (_req: Request, res: Response) => {
-  const colleges = await collegeService.getAllColleges();
+const getAllColleges = catchAsync(async (req: Request, res: Response) => {
+  const colleges = await collegeService.getAllColleges(req.query);
 
   res.status(200).json(
     new ApiResponse(

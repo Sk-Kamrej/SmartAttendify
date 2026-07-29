@@ -1,17 +1,24 @@
-import collegeRepository from "./college.repository.js";
-import { CreateCollegeInput } from "./college.validator.js";
-import ApiError from "../../utils/ApiError.js";
 import { Prisma } from "@prisma/client";
+import ApiError from "../../utils/ApiError.js";
+import collegeRepository from "./college.repository.js";
+import { getPagination } from "../../utils/pagination.js";
 
-const createCollege = async (data: CreateCollegeInput) => {
-  // Check duplicate college code
+interface GetAllCollegesQuery {
+  page?: string;
+  limit?: string;
+  search?: string;
+  isActive?: string;
+  sortBy?: "name" | "code" | "createdAt";
+  sortOrder?: "asc" | "desc";
+}
+
+const createCollege = async (data: Prisma.CollegeCreateInput) => {
   const existingCode = await collegeRepository.findByCode(data.code);
 
   if (existingCode) {
     throw new ApiError(409, "College code already exists");
   }
 
-  // Check duplicate email
   if (data.email) {
     const existingEmail = await collegeRepository.findByEmail(data.email);
 
@@ -20,19 +27,24 @@ const createCollege = async (data: CreateCollegeInput) => {
     }
   }
 
-  return collegeRepository.create({
-    name: data.name,
-    code: data.code,
-    email: data.email,
-    phone: data.phone,
-    website: data.website,
-    logoUrl: data.logoUrl,
-    address: data.address,
-  });
+  return collegeRepository.create(data);
 };
 
-const getAllColleges = async () => {
-  return collegeRepository.findAll();
+const getAllColleges = async (query: GetAllCollegesQuery) => {
+  const { page, limit, skip } = getPagination(query);
+
+  return collegeRepository.findAll({
+    page,
+    limit,
+    skip,
+    search: query.search,
+    isActive:
+      query.isActive === undefined
+        ? undefined
+        : query.isActive === "true",
+    sortBy: query.sortBy,
+    sortOrder: query.sortOrder,
+  });
 };
 
 const getCollegeById = async (id: string) => {
@@ -47,53 +59,44 @@ const getCollegeById = async (id: string) => {
 
 const updateCollege = async (
   id: string,
-  payload: Prisma.CollegeUpdateInput
+  data: Prisma.CollegeUpdateInput
 ) => {
-  // Check if college exists
-  const existingCollege = await collegeRepository.findById(id);
+  const college = await collegeRepository.findById(id);
 
-  if (!existingCollege) {
+  if (!college) {
     throw new ApiError(404, "College not found");
   }
 
-  // Check duplicate code
-  if (payload.code && typeof payload.code === "string") {
-    const codeExists = await collegeRepository.findByCodeExceptId(
-      payload.code,
+  if (data.code && typeof data.code === "string") {
+    const existingCode = await collegeRepository.findByCodeExceptId(
+      data.code,
       id
     );
 
-    if (codeExists) {
+    if (existingCode) {
       throw new ApiError(409, "College code already exists");
     }
   }
 
-  // Check duplicate email
-  if (payload.email && typeof payload.email === "string") {
-    const emailExists = await collegeRepository.findByEmailExceptId(
-      payload.email,
+  if (data.email && typeof data.email === "string") {
+    const existingEmail = await collegeRepository.findByEmailExceptId(
+      data.email,
       id
     );
 
-    if (emailExists) {
+    if (existingEmail) {
       throw new ApiError(409, "College email already exists");
     }
   }
 
-  return collegeRepository.update(id, payload);
+  return collegeRepository.update(id, data);
 };
 
 const deleteCollege = async (id: string) => {
-  // Check if college exists
-  const existingCollege = await collegeRepository.findById(id);
+  const college = await collegeRepository.findById(id);
 
-  if (!existingCollege) {
+  if (!college) {
     throw new ApiError(404, "College not found");
-  }
-
-  // Prevent deleting an already inactive college
-  if (!existingCollege.isActive) {
-    throw new ApiError(400, "College is already inactive");
   }
 
   return collegeRepository.softDelete(id);
