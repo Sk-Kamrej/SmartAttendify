@@ -83,9 +83,26 @@ const updateCollege = async (
   return collegeRepository.update(id, payload);
 };
 
+const deleteCollege = async (id: string) => {
+  // Check if college exists
+  const existingCollege = await collegeRepository.findById(id);
+
+  if (!existingCollege) {
+    throw new ApiError(404, "College not found");
+  }
+
+  // Prevent deleting an already inactive college
+  if (!existingCollege.isActive) {
+    throw new ApiError(400, "College is already inactive");
+  }
+
+  return collegeRepository.softDelete(id);
+};
+
 export default {
   createCollege,
   getAllColleges,
   getCollegeById,
   updateCollege,
+  deleteCollege,
 };

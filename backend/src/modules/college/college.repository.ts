@@ -70,6 +70,17 @@ const findByEmailExceptId = async (email: string, id: string) => {
   });
 };
 
+const softDelete = async (id: string) => {
+  return prisma.college.update({
+    where: {
+      id,
+    },
+    data: {
+      isActive: false,
+    },
+  });
+};
+
 export default {
   create,
   findByCode,
@@ -77,6 +88,7 @@ export default {
   findById,
   findAll,
   update,
+  softDelete,
   findByCodeExceptId,
   findByEmailExceptId,
 };

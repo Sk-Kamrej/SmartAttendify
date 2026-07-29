@@ -96,9 +96,32 @@ const updateCollege = async (
   }
 };
 
+const deleteCollege = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const college = await collegeService.deleteCollege(
+      String(req.params.id)
+    );
+
+    res.status(200).json(
+      new ApiResponse(
+        true,
+        "College deleted successfully",
+        college
+      )
+    );
+  } catch (error) {
+    next(error);
+  }
+};
+
 export default {
   createCollege,
   getAllColleges,
   getCollegeById,
   updateCollege,
+  deleteCollege,
 };

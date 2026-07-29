@@ -39,4 +39,12 @@ router.patch(
   collegeController.updateCollege
 );
 
+// Soft Delete College
+router.delete(
+  "/:id",
+  authenticate,
+  authorize(UserRole.SUPER_ADMIN),
+  collegeController.deleteCollege
+);
+
 export default router;
