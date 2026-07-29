@@ -1,7 +1,10 @@
 import { Request, Response, NextFunction } from "express";
 
 import collegeService from "./college.service.js";
-import { createCollegeSchema } from "./college.validator.js";
+import {
+  createCollegeSchema,
+  updateCollegeSchema,
+} from "./college.validator.js";
 import ApiResponse from "../../utils/ApiResponse.js";
 
 const createCollege = async (
@@ -53,9 +56,9 @@ const getCollegeById = async (
 ) => {
   try {
     const college = await collegeService.getCollegeById(
-    String(req.params.id)
+      String(req.params.id)
     );
-    
+
     res.status(200).json(
       new ApiResponse(
         true,
@@ -68,8 +71,34 @@ const getCollegeById = async (
   }
 };
 
+const updateCollege = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const data = updateCollegeSchema.parse(req.body);
+
+    const college = await collegeService.updateCollege(
+      String(req.params.id),
+      data
+    );
+
+    res.status(200).json(
+      new ApiResponse(
+        true,
+        "College updated successfully",
+        college
+      )
+    );
+  } catch (error) {
+    next(error);
+  }
+};
+
 export default {
   createCollege,
   getAllColleges,
   getCollegeById,
+  updateCollege,
 };

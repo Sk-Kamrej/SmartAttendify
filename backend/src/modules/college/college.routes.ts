@@ -31,4 +31,12 @@ router.get(
   collegeController.getCollegeById
 );
 
+// Update College
+router.patch(
+  "/:id",
+  authenticate,
+  authorize(UserRole.SUPER_ADMIN),
+  collegeController.updateCollege
+);
+
 export default router;

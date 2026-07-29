@@ -1,5 +1,5 @@
-import prisma from "../../config/prisma.js";
 import { Prisma } from "@prisma/client";
+import prisma from "../../config/prisma.js";
 
 const create = async (data: Prisma.CollegeCreateInput) => {
   return prisma.college.create({
@@ -39,10 +39,44 @@ const findAll = async () => {
   });
 };
 
+const update = async (id: string, data: Prisma.CollegeUpdateInput) => {
+  return prisma.college.update({
+    where: {
+      id,
+    },
+    data,
+  });
+};
+
+const findByCodeExceptId = async (code: string, id: string) => {
+  return prisma.college.findFirst({
+    where: {
+      code,
+      NOT: {
+        id,
+      },
+    },
+  });
+};
+
+const findByEmailExceptId = async (email: string, id: string) => {
+  return prisma.college.findFirst({
+    where: {
+      email,
+      NOT: {
+        id,
+      },
+    },
+  });
+};
+
 export default {
   create,
   findByCode,
   findByEmail,
   findById,
   findAll,
+  update,
+  findByCodeExceptId,
+  findByEmailExceptId,
 };
