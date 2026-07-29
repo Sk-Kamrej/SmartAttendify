@@ -2,8 +2,14 @@ import { Router } from "express";
 import { UserRole } from "@prisma/client";
 
 import collegeController from "./college.controller.js";
+import {
+  createCollegeSchema,
+  updateCollegeSchema,
+} from "./college.validator.js";
+
 import authenticate from "../../middlewares/auth.middleware.js";
 import authorize from "../../middlewares/authorize.middleware.js";
+import validateRequest from "../../middlewares/validateRequest.js";
 
 const router = Router();
 
@@ -12,6 +18,7 @@ router.post(
   "/",
   authenticate,
   authorize(UserRole.SUPER_ADMIN),
+  validateRequest(createCollegeSchema),
   collegeController.createCollege
 );
 
@@ -36,6 +43,7 @@ router.patch(
   "/:id",
   authenticate,
   authorize(UserRole.SUPER_ADMIN),
+  validateRequest(updateCollegeSchema),
   collegeController.updateCollege
 );
 

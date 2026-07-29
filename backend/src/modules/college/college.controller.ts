@@ -1,122 +1,75 @@
-import { Request, Response, NextFunction } from "express";
+import { Request, Response } from "express";
 
 import collegeService from "./college.service.js";
-import {
-  createCollegeSchema,
-  updateCollegeSchema,
-} from "./college.validator.js";
 import ApiResponse from "../../utils/ApiResponse.js";
+import catchAsync from "../../utils/catchAsync.js";
 
-const createCollege = async (
-  req: Request,
-  res: Response,
-  next: NextFunction
-) => {
-  try {
-    const data = createCollegeSchema.parse(req.body);
+const createCollege = catchAsync(async (req: Request, res: Response) => {
+  const college = await collegeService.createCollege(req.body);
 
-    const college = await collegeService.createCollege(data);
+  res.status(201).json(
+    new ApiResponse(
+      true,
+      "College created successfully",
+      college
+    )
+  );
+});
 
-    res.status(201).json(
-      new ApiResponse(
-        true,
-        "College created successfully",
-        college
-      )
-    );
-  } catch (error) {
-    next(error);
-  }
-};
+const getAllColleges = catchAsync(async (_req: Request, res: Response) => {
+  const colleges = await collegeService.getAllColleges();
 
-const getAllColleges = async (
-  _req: Request,
-  res: Response,
-  next: NextFunction
-) => {
-  try {
-    const colleges = await collegeService.getAllColleges();
+  res.status(200).json(
+    new ApiResponse(
+      true,
+      "Colleges fetched successfully",
+      colleges
+    )
+  );
+});
 
-    res.status(200).json(
-      new ApiResponse(
-        true,
-        "Colleges fetched successfully",
-        colleges
-      )
-    );
-  } catch (error) {
-    next(error);
-  }
-};
+const getCollegeById = catchAsync(async (req: Request, res: Response) => {
+  const college = await collegeService.getCollegeById(
+    String(req.params.id)
+  );
 
-const getCollegeById = async (
-  req: Request,
-  res: Response,
-  next: NextFunction
-) => {
-  try {
-    const college = await collegeService.getCollegeById(
-      String(req.params.id)
-    );
+  res.status(200).json(
+    new ApiResponse(
+      true,
+      "College fetched successfully",
+      college
+    )
+  );
+});
 
-    res.status(200).json(
-      new ApiResponse(
-        true,
-        "College fetched successfully",
-        college
-      )
-    );
-  } catch (error) {
-    next(error);
-  }
-};
+const updateCollege = catchAsync(async (req: Request, res: Response) => {
+  const college = await collegeService.updateCollege(
+    String(req.params.id),
+    req.body
+  );
 
-const updateCollege = async (
-  req: Request,
-  res: Response,
-  next: NextFunction
-) => {
-  try {
-    const data = updateCollegeSchema.parse(req.body);
+  res.status(200).json(
+    new ApiResponse(
+      true,
+      "College updated successfully",
+      college
+    )
+  );
+});
 
-    const college = await collegeService.updateCollege(
-      String(req.params.id),
-      data
-    );
+const deleteCollege = catchAsync(async (req: Request, res: Response) => {
+  const college = await collegeService.deleteCollege(
+    String(req.params.id)
+  );
 
-    res.status(200).json(
-      new ApiResponse(
-        true,
-        "College updated successfully",
-        college
-      )
-    );
-  } catch (error) {
-    next(error);
-  }
-};
-
-const deleteCollege = async (
-  req: Request,
-  res: Response,
-  next: NextFunction
-) => {
-  try {
-    const college = await collegeService.deleteCollege(
-      String(req.params.id)
-    );
-
-    res.status(200).json(
-      new ApiResponse(
-        true,
-        "College deleted successfully",
-        college
-      )
-    );
-  } catch (error) {
-    next(error);
-  }
-};
+  res.status(200).json(
+    new ApiResponse(
+      true,
+      "College deleted successfully",
+      college
+    )
+  );
+});
 
 export default {
   createCollege,
