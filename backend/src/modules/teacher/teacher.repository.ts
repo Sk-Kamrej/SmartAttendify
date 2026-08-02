@@ -3,20 +3,38 @@ import { Prisma } from "@prisma/client";
 import prisma from "../../config/prisma.js";
 
 const create = async (
-  data: Prisma.TeacherCreateInput,
-  user: Prisma.UserCreateInput
+  teacherData: {
+    employeeId: string;
+    designation?: string;
+    qualification?: string;
+    phone?: string;
+    officialEmail?: string;
+    joiningDate: Date;
+    departmentId: string;
+  },
+  userData: Prisma.UserCreateInput
 ) => {
   return prisma.$transaction(async (tx) => {
-    const createdUser = await tx.user.create({
-      data: user,
+    const user = await tx.user.create({
+      data: userData,
     });
 
-    const teacher = await tx.teacher.create({
+    return tx.teacher.create({
       data: {
-        ...data,
+        employeeId: teacherData.employeeId,
+        designation: teacherData.designation,
+        qualification: teacherData.qualification,
+        phone: teacherData.phone,
+        officialEmail: teacherData.officialEmail,
+        joiningDate: teacherData.joiningDate,
         user: {
           connect: {
-            id: createdUser.id,
+            id: user.id,
+          },
+        },
+        department: {
+          connect: {
+            id: teacherData.departmentId,
           },
         },
       },
@@ -25,8 +43,6 @@ const create = async (
         department: true,
       },
     });
-
-    return teacher;
   });
 };
 
@@ -99,9 +115,6 @@ const update = async (
         id,
       },
       data: teacherData,
-      include: {
-        user: true,
-      },
     });
 
     await tx.user.update({
