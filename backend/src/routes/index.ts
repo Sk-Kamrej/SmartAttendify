@@ -9,6 +9,7 @@ import subjectRoutes from "../modules/subject/subject.routes.js";
 import teacherRoutes from "../modules/teacher/teacher.routes.js";
 import studentRoutes from "../modules/student/student.routes.js";
 import academicSessionRoutes from "../modules/academicSession/academicSession.routes.js";
+import teacherAssignmentRoutes from "../modules/teacherAssignment/teacherAssignment.routes.js";
 
 const router = Router();
 
@@ -21,5 +22,6 @@ router.use("/subjects", subjectRoutes);
 router.use("/teachers", teacherRoutes);
 router.use("/students", studentRoutes);
 router.use("/academic-sessions", academicSessionRoutes);
+router.use("/teacher-assignments", teacherAssignmentRoutes);
 
 export default router;
