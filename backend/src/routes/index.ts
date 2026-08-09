@@ -13,6 +13,7 @@ import teacherAssignmentRoutes from "../modules/teacherAssignment/teacherAssignm
 import enrollmentRoutes from "../modules/enrollment/enrollment.routes.js";
 import attendanceSessionRoutes from "../modules/attendanceSession/attendanceSession.routes.js";
 import attendanceRecordRoutes from "../modules/attendanceRecord/attendanceRecord.routes.js";
+import attendancePolicyRoutes from "../modules/attendancePolicy/attendancePolicy.routes.js";
 
 const router = Router();
 
