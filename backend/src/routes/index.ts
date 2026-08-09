@@ -30,5 +30,6 @@ router.use("/teacher-assignments", teacherAssignmentRoutes);
 router.use("/enrollments", enrollmentRoutes);
 router.use("/attendance-sessions", attendanceSessionRoutes);
 router.use("/attendance-records", attendanceRecordRoutes);
+router.use("/attendance-policies",attendancePolicyRoutes);
 
 export default router;
