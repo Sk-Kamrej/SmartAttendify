@@ -228,8 +228,18 @@ const remove = (id: string) => {
   });
 };
 
+const createMany = async (
+  records: Prisma.AttendanceRecordCreateManyInput[]
+) => {
+  return prisma.attendanceRecord.createMany({
+    data: records,
+    skipDuplicates: true,
+  });
+};
+
 export default {
   create,
+  createMany,
   findById,
   findDuplicate,
   findMany,
