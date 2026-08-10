@@ -5,6 +5,23 @@ import catchAsync from "../../utils/catchAsync.js";
 
 import attendanceRecordService from "./attendanceRecord.service.js";
 
+const createBulkAttendanceRecords = catchAsync(
+  async (req: Request, res: Response) => {
+    const result =
+      await attendanceRecordService.createBulkAttendanceRecords(
+        req.body
+      );
+
+    res.status(201).json(
+      new ApiResponse(
+        true,
+        "Bulk attendance marked successfully",
+        result
+      )
+    );
+  }
+);
+
 const createAttendanceRecord = catchAsync(
   async (req: Request, res: Response) => {
     const record =
@@ -93,6 +110,7 @@ const deleteAttendanceRecord = catchAsync(
 
 export default {
   createAttendanceRecord,
+  createBulkAttendanceRecords,
   getAllAttendanceRecords,
   getAttendanceRecordById,
   updateAttendanceRecord,
