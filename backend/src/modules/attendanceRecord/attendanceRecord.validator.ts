@@ -32,3 +32,27 @@ export const updateAttendanceRecordSchema = z.object({
     markedAt: z.coerce.date().optional(),
   }),
 });
+
+export const createBulkAttendanceRecordsSchema = z.object({
+  body: z.object({
+    attendanceSessionId: z.uuid(),
+
+    records: z
+      .array(
+        z.object({
+          enrollmentId: z.uuid(),
+
+          status: z.nativeEnum(AttendanceStatus),
+
+          remarks: z
+            .string()
+            .trim()
+            .max(500)
+            .optional(),
+
+          markedAt: z.coerce.date().optional(),
+        })
+      )
+      .min(1, "At least one attendance record is required"),
+  }),
+});

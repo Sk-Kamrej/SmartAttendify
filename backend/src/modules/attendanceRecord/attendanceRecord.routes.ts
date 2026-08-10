@@ -4,6 +4,7 @@ import { UserRole } from "@prisma/client";
 import attendanceRecordController from "./attendanceRecord.controller.js";
 import {
   createAttendanceRecordSchema,
+  createBulkAttendanceRecordsSchema,
   updateAttendanceRecordSchema,
 } from "./attendanceRecord.validator.js";
 
@@ -25,6 +26,20 @@ router.post(
   ),
   validateRequest(createAttendanceRecordSchema),
   attendanceRecordController.createAttendanceRecord
+);
+
+// Create Bulk Attendance Records
+router.post(
+  "/bulk",
+  authenticate,
+  authorize(
+    UserRole.SUPER_ADMIN,
+    UserRole.COLLEGE_ADMIN,
+    UserRole.HOD,
+    UserRole.TEACHER
+  ),
+  validateRequest(createBulkAttendanceRecordsSchema),
+  attendanceRecordController.createBulkAttendanceRecords
 );
 
 // Get All Attendance Records
