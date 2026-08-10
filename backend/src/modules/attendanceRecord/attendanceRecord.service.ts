@@ -21,6 +21,13 @@ interface AttendanceRecordQuery {
   sortOrder?: "asc" | "desc";
 }
 
+interface BulkAttendanceRecord {
+  enrollmentId: string;
+  status: AttendanceStatus;
+  remarks?: string;
+  markedAt?: Date;
+}
+
 const createAttendanceRecord = async (payload: {
   attendanceSessionId: string;
   enrollmentId: string;
@@ -110,6 +117,119 @@ const createAttendanceRecord = async (payload: {
       },
     },
   });
+};
+
+const createBulkAttendanceRecords = async (payload: {
+  attendanceSessionId: string;
+  records: BulkAttendanceRecord[];
+}) => {
+  const attendanceSession =
+    await attendanceSessionRepository.findById(
+      payload.attendanceSessionId
+    );
+
+  if (!attendanceSession) {
+    throw new ApiError(
+      404,
+      "Attendance session not found"
+    );
+  }
+
+  if (payload.records.length === 0) {
+    throw new ApiError(
+      400,
+      "Attendance records cannot be empty"
+    );
+  }
+
+  const enrollmentIds = payload.records.map(
+    (record) => record.enrollmentId
+  );
+
+  const uniqueEnrollmentIds = new Set(
+    enrollmentIds
+  );
+
+  if (
+    uniqueEnrollmentIds.size !==
+    enrollmentIds.length
+  ) {
+    throw new ApiError(
+      400,
+      "Duplicate enrollment IDs are not allowed"
+    );
+  }
+
+  const enrollments = await Promise.all(
+    enrollmentIds.map((enrollmentId) =>
+      enrollmentRepository.findById(enrollmentId)
+    )
+  );
+
+  for (let i = 0; i < enrollments.length; i++) {
+    const enrollment = enrollments[i];
+
+    if (!enrollment) {
+      throw new ApiError(
+        404,
+        `Enrollment not found: ${enrollmentIds[i]}`
+      );
+    }
+
+    if (
+      enrollment.academicSessionId !==
+      attendanceSession.teacherAssignment
+        .academicSessionId
+    ) {
+      throw new ApiError(
+        400,
+        `Enrollment ${enrollmentIds[i]} does not belong to the same academic session`
+      );
+    }
+
+    if (
+      enrollment.programId !==
+      attendanceSession.teacherAssignment
+        .subject.programId
+    ) {
+      throw new ApiError(
+        400,
+        `Enrollment ${enrollmentIds[i]} does not belong to the subject program`
+      );
+    }
+
+    if (
+      enrollment.semesterId !==
+      attendanceSession.teacherAssignment
+        .subject.semesterId
+    ) {
+      throw new ApiError(
+        400,
+        `Enrollment ${enrollmentIds[i]} does not belong to the subject semester`
+      );
+    }
+  }
+
+  const records =
+    payload.records.map((record) => ({
+      attendanceSessionId:
+        payload.attendanceSessionId,
+      enrollmentId: record.enrollmentId,
+      status: record.status,
+      remarks: record.remarks,
+      markedAt: record.markedAt ?? new Date(),
+    }));
+
+  const result =
+    await attendanceRecordRepository.createMany(
+      records
+    );
+
+  return {
+    count: result.count,
+    message:
+      "Bulk attendance marked successfully",
+  };
 };
 
 const getAttendanceRecordById = async (
@@ -221,6 +341,7 @@ const deleteAttendanceRecord = async (
 
 export default {
   createAttendanceRecord,
+  createBulkAttendanceRecords,
   getAllAttendanceRecords,
   getAttendanceRecordById,
   updateAttendanceRecord,
