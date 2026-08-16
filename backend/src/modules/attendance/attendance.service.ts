@@ -182,6 +182,82 @@ const getStudentAttendanceSummary = async (
   };
 };
 
+const getStudentAttendanceShortage = async (
+  studentId: string,
+  academicSessionId?: string
+) => {
+  const summary = await getStudentAttendanceSummary(
+    studentId,
+    academicSessionId
+  );
+
+  const enrollment = await prisma.enrollment.findFirst({
+    where: {
+      studentId,
+      ...(academicSessionId
+        ? {
+            academicSessionId,
+          }
+        : {}),
+    },
+    include: {
+      academicSession: true,
+    },
+    orderBy: {
+      createdAt: "desc",
+    },
+  });
+
+  if (!enrollment) {
+    throw new ApiError(
+      404,
+      "Student enrollment not found"
+    );
+  }
+
+  const policy =
+    await prisma.attendancePolicy.findUnique({
+      where: {
+        collegeId:
+          enrollment.academicSession.collegeId,
+      },
+    });
+
+  const minimumPercentage =
+    policy?.minimumAttendancePercentage ?? 75;
+
+  const attendancePercentage =
+    summary.summary.attendancePercentage;
+
+  const isShortage =
+    attendancePercentage < minimumPercentage;
+
+  return {
+    student: summary.student,
+
+    academicSessionId:
+      academicSessionId ??
+      enrollment.academicSessionId,
+
+    attendancePercentage,
+
+    minimumRequiredPercentage:
+      minimumPercentage,
+
+    isShortage,
+
+    shortagePercentage: isShortage
+      ? Number(
+          (
+            minimumPercentage -
+            attendancePercentage
+          ).toFixed(2)
+        )
+      : 0,
+  };
+};
+
 export default {
   getStudentAttendanceSummary,
+  getStudentAttendanceShortage,
 };

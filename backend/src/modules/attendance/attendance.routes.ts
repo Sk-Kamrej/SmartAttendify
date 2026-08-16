@@ -23,4 +23,19 @@ router.get(
   attendanceController.getStudentAttendanceSummary
 );
 
+// Get Student Attendance Shortage
+router.get(
+  "/students/:studentId/shortage",
+  authenticate,
+  authorize(
+    UserRole.SUPER_ADMIN,
+    UserRole.COLLEGE_ADMIN,
+    UserRole.PRINCIPAL,
+    UserRole.HOD,
+    UserRole.TEACHER,
+    UserRole.STUDENT
+  ),
+  attendanceController.getStudentAttendanceShortage
+);
+
 export default router;
