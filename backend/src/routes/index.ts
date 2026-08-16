@@ -14,6 +14,7 @@ import enrollmentRoutes from "../modules/enrollment/enrollment.routes.js";
 import attendanceSessionRoutes from "../modules/attendanceSession/attendanceSession.routes.js";
 import attendanceRecordRoutes from "../modules/attendanceRecord/attendanceRecord.routes.js";
 import attendancePolicyRoutes from "../modules/attendancePolicy/attendancePolicy.routes.js";
+import attendanceRoutes from "../modules/attendance/attendance.routes.js";
 
 const router = Router();
 
@@ -31,5 +32,6 @@ router.use("/enrollments", enrollmentRoutes);
 router.use("/attendance-sessions", attendanceSessionRoutes);
 router.use("/attendance-records", attendanceRecordRoutes);
 router.use("/attendance-policies",attendancePolicyRoutes);
+router.use("/attendance", attendanceRoutes);
 
 export default router;
